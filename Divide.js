@@ -1,80 +1,72 @@
-function stringToNumber(str) {
-  let number = 0;
-  let isNegative = false;
-  let startIndex = 0;
-
-  if (str[0] === '-') {
-    isNegative = true;
-    startIndex = 1;
-  }
-
-  for (let i = startIndex; i < str.length; i++) {
-    const digit = str.charCodeAt(i) - 48;
-    number = (number * 10) + digit;
-  }
-
-  return isNegative ? -number : number;
-}
-
 String.prototype.divide = function (string) {
-  const num1 = stringToNumber(this);
-  const num2 = stringToNumber(string);
-
-  if (num2 === 0) {
-    throw new Error("Division by zero.");
-  }
-
-    let isNegative = false;
-  if ((num1 < 0 && num2 > 0) || (num1 > 0 && num2 < 0)) {
-    isNegative = true;
-  }
-
-    let absNum1 = num1;
-  if (num1 < 0) {
-    absNum1 = -num1;
-  }
-  let absNum2 = num2;
-  if (num2 < 0) {
-    absNum2 = -num2;
-  }
-
-    function divideHelper(dividend, divisor, quotient = 0) {
-    if (dividend < divisor) {
-      return { quotient, remainder: dividend };
+    const str1 = this.toString();
+    const str2 = string.toString();
+  
+    if (str2 === '0') {
+      throw new Error("Error: Division by zero");
     }
-
-    let nextPowerOfTen = 1;
-    let tempDivisor = divisor;
-    while (tempDivisor * 10 < dividend) {
-      tempDivisor *= 10;
-      nextPowerOfTen *= 10;
+  
+    const isNegative = (str1[0] === '-' && str2[0] !== '-') || (str1[0] !== '-' && str2[0] === '-');
+    const dividend = str1.replace('-', '');
+    const divisor = str2.replace('-', '');
+  
+    let quotient = '';
+    let remainder = '0';
+  
+    for (let i = 0; i < dividend.length; i++) {
+      remainder += dividend[i];
+      let quotientDigit = 0;
+      while (parseInt(remainder) >= parseInt(divisor)) {
+        remainder = subtract(remainder, divisor);
+        quotientDigit++;
+      }
+      quotient += quotientDigit;
     }
-
-    const multipleOfDivisor = tempDivisor;
-    let count = 0;
-    while (dividend >= multipleOfDivisor) {
-      dividend -= multipleOfDivisor;
-      count++;
+  
+    return isNegative ? '-' + quotient.replace(/^0+/, '') : quotient.replace(/^0+/, '') || '0';
+  };
+  
+  function subtract(str1, str2) {
+    let result = '';
+    let carry = 0;
+  
+    while (str2.length < str1.length) {
+      str2 = '0' + str2;
     }
-
-    return divideHelper(dividend, divisor, quotient + count * nextPowerOfTen);
+  
+    for (let i = str1.length - 1; i >= 0; i--) {
+      let digit1 = parseInt(str1[i]);
+      let digit2 = parseInt(str2[i]);
+      let subtraction = digit1 - digit2 - carry;
+      if (subtraction < 0) {
+        subtraction += 10;
+        carry = 1;
+      } else {
+        carry = 0;
+      }
+      result = subtraction.toString() + result;
+    }
+  
+    return result.replace(/^0+/, '');
   }
-
-  const result = divideHelper(absNum1, absNum2);
-  return (isNegative ? '-' : '') + result.quotient.toString();
-};
-
-// TESTING //
-const testCases = [
-  ["1234", "2", "617"],
-  ["1000", "1", "1000"],
-  ["12345", "123", "100"],
-  ["999", "11", "90"],
-  ["0", "1", "0"],
-  ["4444444444444444444444444444444440000000000000000000000000000000", "2", "2.2222222e+63"],
-];
-
-for (const testCase of testCases) {
-  const result = testCase[0].divide(testCase[1]);
-  console.log(`Esperado: ${testCase[2]}, Actual: ${result}`);
-}
+  
+  // TESTING //
+  const testCases = [
+    ["1234", "2", "617"],
+    ["1000", "1", "1000"],
+    ["12345", "123", "100"],
+    ["999", "11", "90"],
+    ["0", "1", "0"],
+    ["123", "0", "Error"],
+    ["4444444444444444444444444444444440000000000000000000000000000000", "2", "2222222222222222222222222222222220000000000000000000000000000000"],
+    ["444444444444444444444444444444444000", "444444444444444444444444444444444", "1000"],
+  ];
+  
+  for (const testCase of testCases) {
+    try {
+      const result = testCase[0].divide(testCase[1]);
+      console.log(`Expected: ${testCase[2]}, Actual: ${result}`);
+    } catch (error) {
+      console.log(`Expected: ERROR: ${error.message}`);
+    }
+  }
